@@ -87,7 +87,7 @@ public abstract class ArduinoConfig {
 
     public Optional<Version> findCurrentVersion() {
         return findHighestArduinoVersionLine().map( 
-            line -> new Version( line.split("=")[0].substring(9, 14) ) 
+            line -> new Version( line.split("=")[0].replaceAll("^(\\D)+|(\\D)+$", "") )
         );
     }    
     
@@ -107,7 +107,7 @@ public abstract class ArduinoConfig {
         
         for ( String line : hardwarePathLines ) {
             // e.g: last.ide.1.8.2.hardwarepath=...
-            Version v = new Version( line.substring(9, 14) );
+            Version v = new Version( line.split("=")[0].replaceAll("^(\\D)+|(\\D)+$", "") );
             if ( v.compareTo(highestVersion) > 0 ) {
                 highestVersion = v;
                 highestVersionLine = line;

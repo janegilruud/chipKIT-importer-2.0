@@ -137,7 +137,7 @@ public class ProjectSetupStep implements WizardDescriptor.Panel<WizardDescriptor
         }
         
         if (!isArduinoVersionValid()) {
-            wizardDescriptor.putProperty(WizardDescriptor.PROP_ERROR_MESSAGE, NbBundle.getMessage(ProjectSetupPanel.class, "MSG_IllegalArduinoVersion"));
+            wizardDescriptor.putProperty(WizardDescriptor.PROP_ERROR_MESSAGE, NbBundle.getMessage(ProjectSetupPanel.class, "MSG_IllegalArduinoVersion", MINIMUM_ARDUINO_VERSION));
             return false;
         }
         

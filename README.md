@@ -1,9 +1,11 @@
 # MPLAB Arduino Import plugin
-> A wizard that allows importing Arduino projects
-This plugin contains an import wizard that can be launched from File->Import->Import Arduino Project.
+> A wizard that allows importing Arduino projects into MPLAB X IDE
+
+This plugin contains an import wizard that can be launched from File->Import->Import Arduino Project in the MPLAB X IDE.
 The wizard will allow you to select a sketch file (*.ino) that was created in Arduino IDE.
 Next, it will convert the sketch into an MPLAB X Makefile project.
-With this project you will be able to build and debug the Arduino sketch in MPLAB X.
+With this project you will be able to build and debug the Arduino sketch in MPLAB X IDE.
+Currently it supports AVR and chipKIT boards.
 
 A complete set of Help documentation is included.
 Note that the wizard can import a project in two ways:
@@ -12,7 +14,7 @@ Note that the wizard can import a project in two ways:
 
 The Arduino Import Plugin requires the following software to be installed:
 - MPLAB X v4.10 or later
-- Arduino IDE v1.81 or later
+- Arduino IDE v1.8.5 or later
 - Relevant toolchains configured in MPLAB X
 ## Installing / Getting started
 

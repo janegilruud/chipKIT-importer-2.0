@@ -19,6 +19,7 @@ package com.microchip.mplab.nbide.embedded.arduino.importer;
 import com.microchip.mplab.nbide.embedded.arduino.utils.CopyingFileVisitor;
 import com.microchip.mplab.nbide.embedded.arduino.utils.CopyingFileVisitorWithHeaderDereference;
 import com.microchip.mplab.nbide.embedded.arduino.utils.FileTreeWalker;
+import com.microchip.mplab.nbide.embedded.makeproject.api.configurations.MakeConfiguration;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.FileSystems;
@@ -78,6 +79,8 @@ public class ProjectImporter {
     private Path sourceCoreDirPath;
     private Path sourceVariantDirPath;
     private boolean customLdScriptBoard;
+    private Path packPath;
+    private MakeConfiguration makeConfiguration;
     
     // Fixed properties:
     private final List <String> mainLibraryNames = new ArrayList<>();    
@@ -131,6 +134,22 @@ public class ProjectImporter {
         return customLdScriptsPath;
     }
 
+    public void setPackPath(Path packPath) {
+        this.packPath = packPath;
+    }
+
+    public Path getPackPath() {
+        return packPath;
+    }
+
+    public void setMakeConfiguration(MakeConfiguration makeConfiguration) {
+        this.makeConfiguration = makeConfiguration;
+    }
+
+    public MakeConfiguration getMakeConfiguration() {
+        return makeConfiguration;
+    }
+
     public void setBoardConfiguration(BoardConfiguration boardConfiguration) {
         this.boardConfiguration = boardConfiguration;
     }
@@ -163,6 +182,8 @@ public class ProjectImporter {
         boardConfiguration.putValue("build.core.path", coreDirPath.toString() );
         boardConfiguration.putValue("build.variant.path", variantDirPath != null ? variantDirPath.toString() : "" );
         boardConfiguration.putValue("build.ldscript_dir.path", ldScriptDirPath != null ? ldScriptDirPath.toString() : "" );
+        
+        makeConfiguration.initPacks();
         
         createProjectDirectoryStructure();
         Path tempSketchPath = preprocessSourceProject();
@@ -455,7 +476,7 @@ public class ProjectImporter {
     private void buildLibCore() throws IOException, InterruptedException {
         Path coreDirPath = targetProjectDirectoryPath.resolve(CORE_DIRECTORY_NAME);
         LibCoreBuilder libCoreBuilder = new LibCoreBuilder( coreDirPath );
-        libCoreBuilder.build( boardConfiguration, arduinoBuilderRunner.getToolFinder(), LOGGER::info );
+        libCoreBuilder.build( boardConfiguration, arduinoBuilderRunner.getToolFinder(), packPath, makeConfiguration, LOGGER::info );
         Files.copy( libCoreBuilder.getLibCorePath(), coreDirPath.resolve( LibCoreBuilder.LIB_CORE_FILENAME ) );
         Files.copy( libCoreBuilder.getMakefilePath(), coreDirPath.resolve( libCoreBuilder.getMakefileName() ) );        
         libCoreBuilder.cleanup();

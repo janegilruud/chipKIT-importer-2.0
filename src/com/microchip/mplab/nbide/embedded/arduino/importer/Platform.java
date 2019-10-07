@@ -54,7 +54,7 @@ public class Platform extends ArduinoDataSource {
     }
 
     public boolean isAVR() {
-        return (architecture != null) ? architecture.toLowerCase().equals("avr") : false;
+        return (architecture != null) ? architecture.toLowerCase().contains("avr") : false;
     }
 
     public boolean isSAMD() {

@@ -16,12 +16,16 @@
 package com.microchip.mplab.nbide.embedded.arduino.importer;
 
 import com.microchip.mplab.nbide.embedded.arduino.utils.CopyingFileVisitor;
+import com.microchip.mplab.nbide.embedded.makeproject.api.configurations.MakeConfiguration;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 public class LibCoreBuilder extends AbstractMakeAssistant {
@@ -35,6 +39,8 @@ public class LibCoreBuilder extends AbstractMakeAssistant {
     private BoardConfiguration boardConfiguration;
     private GCCToolFinder toolFinder;
     private Path libCorePath;
+    private Path packPath;
+    private MakeConfiguration makeConfiguration;
     private String archiveCommand;
     
 
@@ -92,11 +98,13 @@ public class LibCoreBuilder extends AbstractMakeAssistant {
         invokeMakeTool(messageConsumer, messageConsumer);
     }
     
-    public void build( BoardConfiguration boardConfiguration, GCCToolFinder toolFinder, Consumer<String> messageConsumer ) throws IOException, InterruptedException {
+    public void build( BoardConfiguration boardConfiguration, GCCToolFinder toolFinder, Path packPath, MakeConfiguration makeConfiguration, Consumer<String> messageConsumer ) throws IOException, InterruptedException {
         this.buildDirPath = Files.createTempDirectory("build");
         this.boardConfiguration = boardConfiguration;
         this.toolFinder = toolFinder;
         this.libCorePath = buildDirPath.resolve(LIB_CORE_FILENAME);
+        this.packPath = packPath;
+        this.makeConfiguration = makeConfiguration;
         if ( sourceDir != null ) {
             copySourceFiles();
         }
@@ -127,17 +135,35 @@ public class LibCoreBuilder extends AbstractMakeAssistant {
     }
     
     @Override
-    protected String buildIncludesSection( BoardConfiguration boardConfiguration ) {
-        if ( sourceDir != null ) {
-//            StringBuilder ret = new StringBuilder();            
-//            ret.append(" \"-I").append(sourceDir.toString()).append("\"");
-//            return ret.toString();
-            return "-I.";
-        } else {
-            return super.buildIncludesSection(boardConfiguration);
+    protected String buildIncludesSection(BoardConfiguration boardConfiguration) {
+        StringBuilder ret = new StringBuilder();
+        if (packPath != null) {
+            /* Because the MPLAB X 5.25 API does not expose proper functions to
+            extract necessary pack information it is necessary to search the
+            packs for the specs-files and cheat with some hard-coding. */
+            ret.append(" \"-I").append(packPath.toString()).append("/include\"");
+            String devName = makeConfiguration.getDevice().getName().toLowerCase();
+            try (Stream<Path> walk = Files.walk(packPath.resolve("gcc"))) {
+                List<String> result = walk.filter(Files::isDirectory)
+                        .map(x -> x.toString())
+                        .filter(f -> f.endsWith(devName))
+                        .collect(Collectors.toList());
+                result.forEach(System.out::println);
+                if(!result.isEmpty()) {
+                    ret.append(" \"-B").append(result.get(0)).append("\"");
+                }
+            } catch (IOException e) {
+                // Ignore exception
+            }
         }
+        if (sourceDir != null) {
+            ret.append(" \"-I.").append("\"");
+        } else {
+            ret.append(super.buildIncludesSection(boardConfiguration));
+        }
+        return ret.toString();
     }
-    
+
 
     //*************************************************
     //*************** PRIVATE METHODS *****************

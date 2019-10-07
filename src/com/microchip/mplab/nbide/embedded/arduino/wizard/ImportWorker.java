@@ -66,6 +66,7 @@ import com.microchip.mplab.nbide.embedded.arduino.wizard.avr.AVRProjectConfigura
 import com.microchip.mplab.nbide.embedded.arduino.wizard.pic32.PIC32ProjectConfigurationImporter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 public class ImportWorker extends SwingWorker<Set<FileObject>, String> {
 
@@ -228,7 +229,17 @@ public class ImportWorker extends SwingWorker<Set<FileObject>, String> {
         LanguageToolchain languageToolchain = LanguageToolchainManager.getDefault().getToolchainWithMetaID( languageToolchainID );
         conf.getLanguageToolchain().setMetaID(new StringConfiguration(null, languageToolchain.getMeta().getID()));
         conf.getLanguageToolchain().setDir(new StringConfiguration(null, languageToolchain.getDirectory()));
-        conf.getLanguageToolchain().setVersion(new StringConfiguration(null, languageToolchain.getVersion()));                
+        conf.getLanguageToolchain().setVersion(new StringConfiguration(null, languageToolchain.getVersion()));
+        
+        String devName = conf.getDevice().getName();
+        conf.initPacks();
+//        Pack pack = packUtils.getInstalledLatestCompatibleDFP(devName);
+//        conf.getPacksConfiguration().getPacks().setValue(packsList);
+        Optional<String> optionalPackPath = conf.getPacksConfiguration().getDevicePackLocation(devName);
+        if( optionalPackPath.isPresent() ) {
+            String packPath = optionalPackPath.get();
+            wizardDescriptor.putProperty(DEVICE_SUPPORT_PATH.key(), new File(packPath));
+        }
         
         return conf;
     }
@@ -242,6 +253,7 @@ public class ImportWorker extends SwingWorker<Set<FileObject>, String> {
         File sourceProjectDir = (File) wizardDescriptor.getProperty(SOURCE_PROJECT_DIR.key());        
         BoardConfiguration boardConfiguration = (BoardConfiguration) wizardDescriptor.getProperty(BOARD_CONFIGURATION.key());
         File arduinoInstallDir = (File) wizardDescriptor.getProperty(ARDUINO_DIR.key());
+        File packDir = (File) wizardDescriptor.getProperty(DEVICE_SUPPORT_PATH.key());
 
         GCCToolFinder toolFinder = new GCCToolFinder(newProject.getActiveConfiguration().getLanguageToolchain().findToolchain());
         ArduinoConfig arduinoPathResolver = ArduinoConfig.getInstance();
@@ -266,6 +278,8 @@ public class ImportWorker extends SwingWorker<Set<FileObject>, String> {
         importer.setArduinoBuilderRunner(arduinoBuilderRunner);
         importer.setBootloaderPathProvider(bootloaderPathProvider);
         importer.setCustomLdScriptsPath(customLdScriptsDirectoryPath);
+        importer.setPackPath(packDir.toPath());
+        importer.setMakeConfiguration(newProject.getActiveConfiguration());
         importer.execute();
 
         // This will be used to display either the short "how-to" guide or the longer one:

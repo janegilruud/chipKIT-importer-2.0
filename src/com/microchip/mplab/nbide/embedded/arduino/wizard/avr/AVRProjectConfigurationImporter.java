@@ -28,7 +28,7 @@ import java.util.Set;
 
 public final class AVRProjectConfigurationImporter extends ProjectConfigurationImporter {
 
-    private static final String DEFAULT_OPTIMIZATION_OPTION = "-O3";
+    private static final String DEFAULT_OPTIMIZATION_OPTION = "-Os";
     private static final List<String> SUPPORTED_AVR_DEVICE_NAMES = Arrays.asList("__AVR_ATmega328P__", "__AVR_ATmega168P__");
 
     public AVRProjectConfigurationImporter(ProjectImporter importer, boolean copyFiles, MakeConfigurationBook projectDescriptor, File targetProjectDir) {

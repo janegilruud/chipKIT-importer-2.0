@@ -198,7 +198,6 @@ public class ProjectImporter {
         }
         
         copyBootloaderFiles();
-        buildLibCore();
         
         if ( copyingFiles ) {
             arduinoBuilderRunner.cleanup();  // Removes the "temp" directory

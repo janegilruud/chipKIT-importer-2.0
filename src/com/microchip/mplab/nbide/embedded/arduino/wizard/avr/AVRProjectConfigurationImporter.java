@@ -61,7 +61,6 @@ public final class AVRProjectConfigurationImporter extends ProjectConfigurationI
             
             setAuxOptionValue(mc, "AVR-LD", "remove-unused-sections", "true");
             setAuxOptionValue(mc, "AVR-LD", "extra-lib-directories", ProjectImporter.CORE_DIRECTORY_NAME);
-            setAuxOptionValue(mc, "AVR-LD", "input-libraries", LibCoreBuilder.LIB_CORE_NAME);
             setAppendixValue(mc, "AVR-LD", ldAppendOptions);
         });
     }

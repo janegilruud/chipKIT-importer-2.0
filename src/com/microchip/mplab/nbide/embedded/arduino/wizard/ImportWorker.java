@@ -288,7 +288,7 @@ public class ImportWorker extends SwingWorker<Set<FileObject>, String> {
         // Create Imported Core Logical Folder
         Folder importedCoreFolder = newProjectDescriptor.getLogicalFolders().addNewFolder(ProjectImporter.CORE_DIRECTORY_NAME,
             "Imported Core",
-            false,
+            true,
             Folder.Kind.SOURCE_LOGICAL_FOLDER
         );
         importer.getCoreFilePaths().forEach(

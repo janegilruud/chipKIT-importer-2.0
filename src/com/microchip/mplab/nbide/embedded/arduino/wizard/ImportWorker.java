@@ -327,9 +327,8 @@ public class ImportWorker extends SwingWorker<Set<FileObject>, String> {
             });
         }
 
-        newProjectDescriptor.addSourceRoot(copyFiles ? ProjectImporter.SOURCE_FILES_DIRECTORY_NAME : importer.getSourceProjectDirectoryPath().toString());
-
         if (!copyFiles) {
+            newProjectDescriptor.addSourceRoot(importer.getSourceProjectDirectoryPath().toString());
             Folder sketchSourceFolder = newProjectDescriptor.getLogicalFolders().addNewFolder(
                 "sketchSource",
                 "Sketch Source",

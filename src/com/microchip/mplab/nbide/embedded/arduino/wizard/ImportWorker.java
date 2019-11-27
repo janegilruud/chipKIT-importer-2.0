@@ -64,9 +64,11 @@ import com.microchip.mplab.nbide.embedded.arduino.importer.Board;
 import com.microchip.mplab.nbide.embedded.arduino.importer.BoardConfiguration;
 import com.microchip.mplab.nbide.embedded.arduino.wizard.avr.AVRProjectConfigurationImporter;
 import com.microchip.mplab.nbide.embedded.arduino.wizard.pic32.PIC32ProjectConfigurationImporter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class ImportWorker extends SwingWorker<Set<FileObject>, String> {
 
@@ -291,10 +293,35 @@ public class ImportWorker extends SwingWorker<Set<FileObject>, String> {
             true,
             Folder.Kind.SOURCE_LOGICAL_FOLDER
         );
+        // Checck for duplicate file names, like wiring_pulse.c and wiring_pulse.S
+        // List of names, without extension, of the files added to the project.
+        List<String> addedFiles = new ArrayList<>();
+        
         importer.getCoreFilePaths().forEach(
             p -> {
                 if (copyFiles) {
-                    addFileToFolder(importedCoreFolder, p, importer.getTargetCoreDirectoryPath());
+                    String coreFile = p.toString();
+                    String[] splitFilename = getFilenameAndExtension(p);
+                    if(!"h".equals(splitFilename[1])) {
+                        for (String addedFilename : addedFiles) {
+                            if (addedFilename.equalsIgnoreCase(splitFilename[0])) {
+                                File file = p.toFile();
+                                String newFilename = splitFilename[0] + "_" + splitFilename[1];
+                                String newFullFilename = file.getName().replaceFirst(splitFilename[0], newFilename);
+                                String theParent = file.getParent();
+                                Path newPath = Paths.get(theParent, newFullFilename);
+                                //File newFile = new File(newPathString);
+                                if (!file.renameTo(newPath.toFile()))
+                                    LOGGER.log(Level.WARNING, "Unable to rename file {0}", file.getName());
+                                else {
+                                    splitFilename[0] = newFilename;
+                                    coreFile = newPath.toString();
+                                }
+                            }
+                        }
+                        addedFiles.add(splitFilename[0]);
+                    }
+                    addFileToFolder(importedCoreFolder, (new File(coreFile)).toPath(), importer.getTargetCoreDirectoryPath());
                 } else {
                     addFileToFolder(importedCoreFolder, p, boardConfiguration.getCoreDirectoryPath(), boardConfiguration.getVariantPath());
                 }
@@ -446,4 +473,16 @@ public class ImportWorker extends SwingWorker<Set<FileObject>, String> {
         }
     }
 
+    private String[] getFilenameAndExtension(Path file) {
+        String[] filenameAsArray = {"",""};
+        String fullFileName = file.getFileName().toString();
+        if(fullFileName.lastIndexOf(".") != -1 && fullFileName.lastIndexOf(".") != 0) {
+            filenameAsArray[0] = fullFileName.substring(0, fullFileName.lastIndexOf(".")); // filename
+            filenameAsArray[1] = fullFileName.substring(fullFileName.lastIndexOf(".") + 1); // extension
+        }else if (!fullFileName.isEmpty())
+        {
+            filenameAsArray[0] = fullFileName;
+        }
+        return filenameAsArray;
+    }
 }

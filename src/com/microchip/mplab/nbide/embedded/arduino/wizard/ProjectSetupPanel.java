@@ -69,6 +69,7 @@ class ProjectSetupPanel extends JPanel {
         javax.swing.JLabel infoLabel = new javax.swing.JLabel();
         copyDependenciesCheckBox = new javax.swing.JCheckBox();
         overwriteCheckBox = new javax.swing.JCheckBox();
+        renameDuplicatesCheckBox = new javax.swing.JCheckBox();
 
         org.openide.awt.Mnemonics.setLocalizedText(sourceProjectLocationLabel, org.openide.util.NbBundle.getMessage(ProjectSetupPanel.class, "ProjectSetupPanel.sourceProjectLocationLabel.text")); // NOI18N
 
@@ -159,6 +160,8 @@ class ProjectSetupPanel extends JPanel {
 
         org.openide.awt.Mnemonics.setLocalizedText(overwriteCheckBox, org.openide.util.NbBundle.getMessage(ProjectSetupPanel.class, "ProjectSetupPanel.overwriteCheckBox.text")); // NOI18N
 
+        org.openide.awt.Mnemonics.setLocalizedText(renameDuplicatesCheckBox, org.openide.util.NbBundle.getMessage(ProjectSetupPanel.class, "ProjectSetupPanel.renameDuplicatesCheckBox.text")); // NOI18N
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -205,7 +208,8 @@ class ProjectSetupPanel extends JPanel {
                             .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(copyDependenciesCheckBox)
-                                    .addComponent(overwriteCheckBox))
+                                    .addComponent(overwriteCheckBox)
+                                    .addComponent(renameDuplicatesCheckBox))
                                 .addGap(0, 0, Short.MAX_VALUE)))))
                 .addContainerGap())
         );
@@ -253,6 +257,8 @@ class ProjectSetupPanel extends JPanel {
                 .addComponent(copyDependenciesCheckBox)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(overwriteCheckBox)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(renameDuplicatesCheckBox)
                 .addGap(0, 0, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
@@ -293,6 +299,7 @@ class ProjectSetupPanel extends JPanel {
     protected javax.swing.JTextField arduinoLocationField;
     protected javax.swing.JComboBox<String> boardCombo;
     protected javax.swing.JCheckBox copyDependenciesCheckBox;
+    protected javax.swing.JCheckBox renameDuplicatesCheckBox;
     protected javax.swing.JCheckBox overwriteCheckBox;
     protected javax.swing.JComboBox<Platform> platformCombo;
     protected javax.swing.JTextField platformLocationField;

@@ -251,6 +251,7 @@ public class ImportWorker extends SwingWorker<Set<FileObject>, String> {
         MakeConfigurationBook newProjectDescriptor = MakeConfigurationBook.getMakeConfigurationDescriptor(newProject);
 
         boolean copyFiles = (boolean) wizardDescriptor.getProperty(COPY_CORE_FILES.key());
+        boolean renameDuplicates = (boolean) wizardDescriptor.getProperty(RENAME_DUPLICATE_FILE_NAMES.key());
         File targetProjectDir = (File) wizardDescriptor.getProperty(PROJECT_DIR.key());
         File sourceProjectDir = (File) wizardDescriptor.getProperty(SOURCE_PROJECT_DIR.key());        
         BoardConfiguration boardConfiguration = (BoardConfiguration) wizardDescriptor.getProperty(BOARD_CONFIGURATION.key());
@@ -300,31 +301,33 @@ public class ImportWorker extends SwingWorker<Set<FileObject>, String> {
             p -> {
                 if (copyFiles) {
                     String coreFile = p.toString();
-                    String[] splitFilename = getFilenameAndExtension(p);
-                    // Check for duplicate file names, like wiring_pulse.c and wiring_pulse.S. The
-                    // MPLAB X Makefile do not include file extension in object file names, so the
-                    // object files for both source files above will be named wiring_pulse.o and
-                    // the linker will fail. To avoid this rename one of them to
-                    // "wiring_pulse_<extension>.<extension>", i.e. wiring_pulse.S to wiring_pulse_S.S
-                    // And ignore header files, since Common.cpp and Common.h are ok.
-                    if(!splitFilename[1].contains("h")) {
-                        for (String addedFilename : addedFiles) {
-                            if (addedFilename.equalsIgnoreCase(splitFilename[0])) {
-                                File file = p.toFile();
-                                String newFilename = splitFilename[0] + "_" + splitFilename[1];
-                                String newFullFilename = file.getName().replaceFirst(splitFilename[0], newFilename);
-                                String theParent = file.getParent();
-                                Path newPath = Paths.get(theParent, newFullFilename);
-                                //File newFile = new File(newPathString);
-                                if (!file.renameTo(newPath.toFile()))
-                                    LOGGER.log(Level.WARNING, "Unable to rename file {0}", file.getName());
-                                else {
-                                    splitFilename[0] = newFilename;
-                                    coreFile = newPath.toString();
+                    if(renameDuplicates) {
+                        // Check for duplicate file names, like wiring_pulse.c and wiring_pulse.S. The
+                        // MPLAB X Makefile do not include file extension in object file names, so the
+                        // object files for both source files above will be named wiring_pulse.o and
+                        // the linker will fail. To avoid this rename one of them to
+                        // "wiring_pulse_<extension>.<extension>", i.e. wiring_pulse.S to wiring_pulse_S.S
+                        // And ignore header files, since Common.cpp and Common.h are ok.
+                        String[] splitFilename = getFilenameAndExtension(p);
+                        if(!splitFilename[1].contains("h")) {
+                            for (String addedFilename : addedFiles) {
+                                if (addedFilename.equalsIgnoreCase(splitFilename[0])) {
+                                    File file = p.toFile();
+                                    String newFilename = splitFilename[0] + "_" + splitFilename[1];
+                                    String newFullFilename = file.getName().replaceFirst(splitFilename[0], newFilename);
+                                    String theParent = file.getParent();
+                                    Path newPath = Paths.get(theParent, newFullFilename);
+                                    //File newFile = new File(newPathString);
+                                    if (!file.renameTo(newPath.toFile()))
+                                        LOGGER.log(Level.WARNING, "Unable to rename file {0}", file.getName());
+                                    else {
+                                        splitFilename[0] = newFilename;
+                                        coreFile = newPath.toString();
+                                    }
                                 }
                             }
+                            addedFiles.add(splitFilename[0]);
                         }
-                        addedFiles.add(splitFilename[0]);
                     }
                     addFileToFolder(importedCoreFolder, (new File(coreFile)).toPath(), importer.getTargetCoreDirectoryPath());
                 } else {

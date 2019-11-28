@@ -27,7 +27,8 @@ public enum ImportWizardProperty {
     LAST_ARDUINO_PLATFORM("lastPlatform"),
     LAST_ARDUINO_PLATFORM_LOCATION("lastPlatformLocation"),
     LAST_ARDUINO_LOCATION("lastArduinoLocation"),
-    COPY_CORE_FILES("copyCoreFiles");
+    COPY_CORE_FILES("copyCoreFiles"),
+    RENAME_DUPLICATE_FILE_NAMES("renameDuplicates");
 
     private final String key;
 

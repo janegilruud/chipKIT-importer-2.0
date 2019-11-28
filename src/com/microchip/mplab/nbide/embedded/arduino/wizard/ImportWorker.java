@@ -293,7 +293,6 @@ public class ImportWorker extends SwingWorker<Set<FileObject>, String> {
             true,
             Folder.Kind.SOURCE_LOGICAL_FOLDER
         );
-        // Checck for duplicate file names, like wiring_pulse.c and wiring_pulse.S
         // List of names, without extension, of the files added to the project.
         List<String> addedFiles = new ArrayList<>();
         
@@ -302,7 +301,13 @@ public class ImportWorker extends SwingWorker<Set<FileObject>, String> {
                 if (copyFiles) {
                     String coreFile = p.toString();
                     String[] splitFilename = getFilenameAndExtension(p);
-                    if(!"h".equals(splitFilename[1])) {
+                    // Check for duplicate file names, like wiring_pulse.c and wiring_pulse.S. The
+                    // MPLAB X Makefile do not include file extension in object file names, so the
+                    // object files for both source files above will be named wiring_pulse.o and
+                    // the linker will fail. To avoid this rename one of them to
+                    // "wiring_pulse_<extension>.<extension>", i.e. wiring_pulse.S to wiring_pulse_S.S
+                    // And ignore header files, since Common.cpp and Common.h are ok.
+                    if(!splitFilename[1].contains("h")) {
                         for (String addedFilename : addedFiles) {
                             if (addedFilename.equalsIgnoreCase(splitFilename[0])) {
                                 File file = p.toFile();

@@ -315,9 +315,7 @@ public class ImportWorker extends SwingWorker<Set<FileObject>, String> {
                                     File file = p.toFile();
                                     String newFilename = splitFilename[0] + "_" + splitFilename[1];
                                     String newFullFilename = file.getName().replaceFirst(splitFilename[0], newFilename);
-                                    String theParent = file.getParent();
-                                    Path newPath = Paths.get(theParent, newFullFilename);
-                                    //File newFile = new File(newPathString);
+                                    Path newPath = Paths.get(file.getParent(), newFullFilename);
                                     if (!file.renameTo(newPath.toFile()))
                                         LOGGER.log(Level.WARNING, "Unable to rename file {0}", file.getName());
                                     else {

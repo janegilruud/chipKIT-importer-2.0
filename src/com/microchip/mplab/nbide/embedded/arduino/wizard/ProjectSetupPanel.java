@@ -259,7 +259,7 @@ class ProjectSetupPanel extends JPanel {
                 .addComponent(overwriteCheckBox)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(renameDuplicatesCheckBox)
-                .addGap(0, 0, Short.MAX_VALUE))
+                .addGap(0, 15, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 

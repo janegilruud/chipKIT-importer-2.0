@@ -330,10 +330,6 @@ public class ProjectSetupStep implements WizardDescriptor.Panel<WizardDescriptor
         Object copyDependencies = wizardDescriptor.getProperty(COPY_CORE_FILES.key());
         view.copyDependenciesCheckBox.setSelected( copyDependencies != null ? (boolean) copyDependencies : true);
         
-        // Rename duplicate file names in Arduino Core:
-        Object renameDuplicates = wizardDescriptor.getProperty(RENAME_DUPLICATE_FILE_NAMES.key());
-        view.renameDuplicatesCheckBox.setSelected( renameDuplicates != null ? (boolean) renameDuplicates : true);
-        
         // Target Project Directory:
         setTargetProjectDirectoryField();
     }
@@ -348,7 +344,6 @@ public class ProjectSetupStep implements WizardDescriptor.Panel<WizardDescriptor
         String targetLocation = readLocationStringFromField( view.targetProjectLocationField );
         String targetDir = readLocationStringFromField( view.projectDirectoryField );
         boolean copyCoreFiles = view.copyDependenciesCheckBox.isSelected();
-        boolean renameDuplicateFileNames = view.renameDuplicatesCheckBox.isSelected();
         
         if ( !board.hasOptions() ) {
             deviceAssistant.storeSettings(settings);
@@ -362,7 +357,6 @@ public class ProjectSetupStep implements WizardDescriptor.Panel<WizardDescriptor
         settings.putProperty(BOARD_NAME.key(), boardName);
         settings.putProperty(BOARD.key(), board);
         settings.putProperty(COPY_CORE_FILES.key(), copyCoreFiles);
-        settings.putProperty(RENAME_DUPLICATE_FILE_NAMES.key(), renameDuplicateFileNames);
                 
         settings.putProperty(DEVICE_HEADER_PRESENT.key(), false);
         settings.putProperty(PLUGIN_BOARD_PRESENT.key(), false);

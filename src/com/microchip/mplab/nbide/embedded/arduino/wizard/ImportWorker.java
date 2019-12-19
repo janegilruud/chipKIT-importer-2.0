@@ -16,6 +16,10 @@
 package com.microchip.mplab.nbide.embedded.arduino.wizard;
 
 import com.microchip.crownking.mplabinfo.DeviceSupport;
+import com.microchip.mplab.mdbcore.MessageMediator.ActionList;
+import com.microchip.mplab.mdbcore.MessageMediator.DialogBoxType;
+import com.microchip.mplab.mdbcore.MessageMediator.Message;
+import com.microchip.mplab.mdbcore.MessageMediator.MessageMediator;
 import com.microchip.mplab.nbide.embedded.api.LanguageToolchain;
 import com.microchip.mplab.nbide.embedded.api.LanguageToolchainManager;
 import com.microchip.mplab.nbide.embedded.arduino.importer.ArduinoBuilderRunner;
@@ -68,7 +72,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
+import org.openide.util.Lookup;
+import org.openide.util.NbBundle;
 
 public class ImportWorker extends SwingWorker<Set<FileObject>, String> {
 
@@ -295,6 +300,9 @@ public class ImportWorker extends SwingWorker<Set<FileObject>, String> {
         );
         // List of names, without extension, of the files added to the project.
         List<String> addedFiles = new ArrayList<>();
+
+        // List of renamed files.
+        List<String[]> renamedFiles = new ArrayList<>();
         
         importer.getCoreFilePaths().forEach(
             p -> {
@@ -317,8 +325,10 @@ public class ImportWorker extends SwingWorker<Set<FileObject>, String> {
                                 if (!file.renameTo(newPath.toFile()))
                                     LOGGER.log(Level.WARNING, "Unable to rename file {0}", file.getName());
                                 else {
+                                    LOGGER.log(Level.FINER, "Renaming {0} to {1}", new Object[]{file.getName(), newPath.toFile().getName()});
                                     splitFilename[0] = newFilename;
                                     coreFile = newPath.toString();
+                                    renamedFiles.add(new String[]{file.getName(), newPath.toFile().getName()});
                                 }
                             }
                         }
@@ -423,6 +433,18 @@ public class ImportWorker extends SwingWorker<Set<FileObject>, String> {
         Files.createFile( propsFilePath );
         PrintWriter printWriter = new PrintWriter( propsFilePath.toFile() );
         importedProjectProperties.store( printWriter, null );
+
+        if(!renamedFiles.isEmpty())
+        {
+            MessageMediator msgMed = Lookup.getDefault().lookup(MessageMediator.class);
+            String message = NbBundle.getMessage(ProjectSetupPanel.class, "MSG_ListOfRenamedFiles");
+            for(String[] renamedFile :renamedFiles)
+            {
+                message += "\n" + renamedFile[0] + "  ->  " + renamedFile[1];
+            }
+            Message Msg = new com.microchip.mplab.mdbcore.MessageMediator.Message(message, "", "RENAME_ARUINO_CORE_FILES", DialogBoxType.INFO_BLOCKING_OK_ONLY);
+            msgMed.handleMessage(Msg,ActionList.DialogPopupOnly);
+        }
     }
 
     private void addFileToFolder(Folder folder, Path filePath, Path... rootPaths) {    

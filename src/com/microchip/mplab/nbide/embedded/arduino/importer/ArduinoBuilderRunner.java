@@ -270,9 +270,8 @@ public class ArduinoBuilderRunner {
                                 if ( path.endsWith("\\") ) {
                                     path = path.substring(0, path.length()-2).trim();
                                 }
-                                Path dependencyFilePath = Paths.get( path );
-                                // TODO: If the "path" string does not represent a path then it probably contains error information. Find a way to handle it.
-                                if ( Files.exists( dependencyFilePath ) ) {
+                                if ( new File(path).exists() ) {
+                                    Path dependencyFilePath = Paths.get( path );
                                     LOGGER.log(Level.INFO, "Dependency path: {0}", dependencyFilePath);
                                     if ( dependencyFilePath.startsWith( librariesDir ) ) {
                                         Path relativeDependencyPath = librariesDir.relativize(dependencyFilePath.normalize());

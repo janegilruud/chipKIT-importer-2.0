@@ -1,15 +1,15 @@
 /*
  * Copyright (c) 2017 Microchip Technology Inc. and its subsidiaries (Microchip). All rights reserved.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * You may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
- * http://www.apache.org/licenses/LICENSE-2.0 
- * 
- * Unless required by applicable law or agreed to in writing, 
- * software distributed under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and limitations under the License.
  */
 package com.microchip.mplab.nbide.embedded.arduino.wizard.avr;
@@ -47,27 +47,27 @@ public final class AVRProjectConfigurationImporter extends ProjectConfigurationI
         String preprocessorMacros = getCompilerMacros();
         String ldAppendOptions = getBoardConfiguration().getValue("build.mcu").map(mcu -> "-mmcu=" + mcu).orElse("");
         String cAppendOptions = String.join(" ", getExtraOptionsC());
-        
+
         getProjectDescriptor().getConfs().getConfigurtions().forEach(c -> {
             MakeConfiguration mc = (MakeConfiguration) c;
-            
+
             setAuxOptionValue(mc, "AVR-Global", "common-include-directories", includeDirectories);
             setAuxOptionValue(mc, "AVR-Global", "legacy-libc", "false");
-            
-            setAuxOptionValue(mc, "AVR-AS-PRE", "include-paths", preProcIncludeDirectories);            
 
-            setAuxOptionValue(mc, "AVR-AS", "include-paths", asmIncludeDirectories);            
+            setAuxOptionValue(mc, "AVR-AS-PRE", "include-paths", preProcIncludeDirectories);
 
-            setAuxOptionValue(mc, "AVR-GCC", "preprocessor-macros", preprocessorMacros);            
+            setAuxOptionValue(mc, "AVR-AS", "include-paths", asmIncludeDirectories);
+
+            setAuxOptionValue(mc, "AVR-GCC", "preprocessor-macros", preprocessorMacros);
             setAuxOptionValue(mc, "AVR-GCC", "optimization-level", DEFAULT_OPTIMIZATION_OPTION);
-            setAuxOptionValue(mc, "AVR-GCC", "extra-include-directories", cIncludeDirectories);            
+            setAuxOptionValue(mc, "AVR-GCC", "extra-include-directories", cIncludeDirectories);
             setAppendixValue(mc, "AVR-GCC", cAppendOptions);
-            
+
             setAuxOptionValue(mc, "AVR-CPP", "preprocessor-macros", preprocessorMacros);
             setAuxOptionValue(mc, "AVR-CPP", "optimization-level", DEFAULT_OPTIMIZATION_OPTION);
-            setAuxOptionValue(mc, "AVR-CPP", "extra-include-directories", cppIncludeDirectories);            
+            setAuxOptionValue(mc, "AVR-CPP", "extra-include-directories", cppIncludeDirectories);
             setAppendixValue(mc, "AVR-CPP", cppAppendOptions);
-            
+
             setAuxOptionValue(mc, "AVR-LD", "remove-unused-sections", "true");
             setAuxOptionValue(mc, "AVR-LD", "extra-lib-directories", ProjectImporter.CORE_DIRECTORY_NAME);
             setAppendixValue(mc, "AVR-LD", ldAppendOptions);

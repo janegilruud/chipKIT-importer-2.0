@@ -214,7 +214,7 @@ public class Platform extends ArduinoDataSource {
 
     // ***************************************
     // ********** PRIVATE METHODS ************
-    // ***************************************    
+    // ***************************************
     private Map<String, String> parseDataFile(String filename) throws IOException {
         try (Stream<String> lines = Files.lines(rootPath.resolve(filename))) {
             return lines

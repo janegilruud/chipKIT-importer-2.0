@@ -14,9 +14,8 @@
  */
 package com.microchip.mplab.nbide.embedded.arduino.wizard.avr;
 
-import com.microchip.mplab.nbide.embedded.arduino.importer.LibCoreBuilder;
-import com.microchip.mplab.nbide.embedded.arduino.importer.ProjectImporter;
 import com.microchip.mplab.nbide.embedded.arduino.importer.BoardConfiguration;
+import com.microchip.mplab.nbide.embedded.arduino.importer.ProjectImporter;
 import com.microchip.mplab.nbide.embedded.arduino.wizard.ProjectConfigurationImporter;
 import com.microchip.mplab.nbide.embedded.makeproject.api.configurations.MakeConfiguration;
 import com.microchip.mplab.nbide.embedded.makeproject.api.configurations.MakeConfigurationBook;
@@ -40,7 +39,11 @@ public final class AVRProjectConfigurationImporter extends ProjectConfigurationI
         Set<String> cppAppendOptionsSet = getExtraOptionsCPP();
         String cppAppendOptions = String.join(" ", cppAppendOptionsSet);
 
-        String includeDirectories = assembleIncludeDirectories();
+        String includeDirectories = getCommonIncludeDirectories();
+        String preProcIncludeDirectories = getPreProcIncludeDirectories();
+        String asmIncludeDirectories = getAssemblerIncludeDirectories();
+        String cIncludeDirectories = getCIncludeDirectories();
+        String cppIncludeDirectories = getCppIncludeDirectories();
         String preprocessorMacros = getCompilerMacros();
         String ldAppendOptions = getBoardConfiguration().getValue("build.mcu").map(mcu -> "-mmcu=" + mcu).orElse("");
         String cAppendOptions = String.join(" ", getExtraOptionsC());
@@ -51,12 +54,18 @@ public final class AVRProjectConfigurationImporter extends ProjectConfigurationI
             setAuxOptionValue(mc, "AVR-Global", "common-include-directories", includeDirectories);
             setAuxOptionValue(mc, "AVR-Global", "legacy-libc", "false");
             
+            setAuxOptionValue(mc, "AVR-AS-PRE", "include-paths", preProcIncludeDirectories);            
+
+            setAuxOptionValue(mc, "AVR-AS", "include-paths", asmIncludeDirectories);            
+
             setAuxOptionValue(mc, "AVR-GCC", "preprocessor-macros", preprocessorMacros);            
             setAuxOptionValue(mc, "AVR-GCC", "optimization-level", DEFAULT_OPTIMIZATION_OPTION);
+            setAuxOptionValue(mc, "AVR-GCC", "extra-include-directories", cIncludeDirectories);            
             setAppendixValue(mc, "AVR-GCC", cAppendOptions);
             
             setAuxOptionValue(mc, "AVR-CPP", "preprocessor-macros", preprocessorMacros);
             setAuxOptionValue(mc, "AVR-CPP", "optimization-level", DEFAULT_OPTIMIZATION_OPTION);
+            setAuxOptionValue(mc, "AVR-CPP", "extra-include-directories", cppIncludeDirectories);            
             setAppendixValue(mc, "AVR-CPP", cppAppendOptions);
             
             setAuxOptionValue(mc, "AVR-LD", "remove-unused-sections", "true");

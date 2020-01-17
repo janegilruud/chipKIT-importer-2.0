@@ -73,7 +73,7 @@ public abstract class ProjectConfigurationImporter {
     
     public abstract void run() throws IOException;
     
-    protected String assembleIncludeDirectories() throws IOException {
+    protected String getCommonIncludeDirectories() throws IOException {
         Path projectPath = Paths.get(targetProjectDir.getAbsolutePath());
         Stream<Path> mainLibraryDirPaths = importer.getMainLibraryDirPaths();
         StringBuilder includesBuilder = new StringBuilder();
@@ -85,21 +85,6 @@ public abstract class ProjectConfigurationImporter {
                 if ( i>0 ) includesBuilder.append(";");
                 includesBuilder.append( coreDirPaths.get(i) );
             }
-        }
-
-        for(String includeDirectory : boardConfiguration.getPlatform().getCIncludeDirectories()) {
-            if(includeDirectory.contains("{")) {
-                String keyWithBrackets = includeDirectory.substring(includeDirectory.indexOf('{'), includeDirectory.lastIndexOf('}')+1);
-                String key = keyWithBrackets.substring(1, keyWithBrackets.length() - 1);
-                Optional<String> value = boardConfiguration.getValue(key);
-                if(!value.isPresent())
-                    continue;
-                includeDirectory = includeDirectory.replace(keyWithBrackets, value.get());
-                if (copyFiles) {
-                    includeDirectory = includeDirectory.replace(boardConfiguration.getValue("build.core.path").get(), ProjectImporter.CORE_DIRECTORY_NAME);
-                }
-            }
-            includesBuilder.append(";").append(includeDirectory);
         }
 
         mainLibraryDirPaths.forEach(path -> {
@@ -114,10 +99,25 @@ public abstract class ProjectConfigurationImporter {
                 includesBuilder.append(";").append(copyFiles ? projectPath.relativize(utilityPath) : utilityPath.toAbsolutePath());
             }
         });
-        
         return includesBuilder.toString();
     }
     
+    protected String getPreProcIncludeDirectories() throws IOException {
+        return evaluateIncludePath(boardConfiguration.getPlatform().getPreProcIncludeDirectories());
+    }
+
+    protected String getAssemblerIncludeDirectories() throws IOException {
+        return evaluateIncludePath(boardConfiguration.getPlatform().getSIncludeDirectories());
+    }
+
+    protected String getCIncludeDirectories() throws IOException {
+        return evaluateIncludePath(boardConfiguration.getPlatform().getCIncludeDirectories());
+    }
+
+    protected String getCppIncludeDirectories() throws IOException {
+        return evaluateIncludePath(boardConfiguration.getPlatform().getCppIncludeDirectories());
+    }
+
     protected void setAuxOptionValue(MakeConfiguration makeConf, String confItemId, String propertyKey, String propertyValue) {        
         OptionConfiguration conf = (OptionConfiguration) makeConf.getAuxObject(confItemId);
         if ( conf != null ) {
@@ -251,6 +251,27 @@ public abstract class ProjectConfigurationImporter {
         return boardConfiguration.getValue("build.mcu").orElse("");
     }
     
-    
-    
+    protected String evaluateIncludePath(List<String> includeDirectories) {
+        StringBuilder includesBuilder = new StringBuilder();
+        Iterator iterator = includeDirectories.iterator();
+        while(iterator.hasNext()) {
+            String includeDirectory = (String)iterator.next();
+            if(includeDirectory.contains("{")) {
+                String keyWithBrackets = includeDirectory.substring(includeDirectory.indexOf('{'), includeDirectory.lastIndexOf('}')+1);
+                String key = keyWithBrackets.substring(1, keyWithBrackets.length() - 1);
+                Optional<String> value = boardConfiguration.getValue(key);
+                if(!value.isPresent())
+                    continue;
+                includeDirectory = includeDirectory.replace(keyWithBrackets, value.get());
+                if (copyFiles) {
+                    includeDirectory = includeDirectory.replace(boardConfiguration.getValue("build.core.path").get(), ProjectImporter.CORE_DIRECTORY_NAME);
+                }
+            }
+            includesBuilder.append(includeDirectory);
+            if(iterator.hasNext()) {
+                includesBuilder.append(";");
+            }
+        }
+        return includesBuilder.toString();
+    }
 }

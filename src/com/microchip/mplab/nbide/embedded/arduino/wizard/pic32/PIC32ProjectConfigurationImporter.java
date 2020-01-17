@@ -41,7 +41,7 @@ public final class PIC32ProjectConfigurationImporter extends ProjectConfiguratio
         boolean cppExceptions = !cppAppendOptionsSet.remove("-fno-exceptions");        
         String cppAppendOptions = String.join(" ", cppAppendOptionsSet);
         
-        String includeDirectories = assembleIncludeDirectories();
+        String includeDirectories = getCommonIncludeDirectories();
         String preprocessorMacros = getCompilerMacros();
         String ldOptions = String.join( " ", getExtraOptionsLD(false, isCopyFiles()) );
         String ldDebugOptions = String.join( " ", getExtraOptionsLD(true, isCopyFiles()) );

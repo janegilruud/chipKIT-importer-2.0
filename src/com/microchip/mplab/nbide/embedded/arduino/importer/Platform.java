@@ -3,9 +3,11 @@ package com.microchip.mplab.nbide.embedded.arduino.importer;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -113,6 +115,22 @@ public class Platform extends ArduinoDataSource {
         return getBoardNamesToIDsLookup().keySet();
     }
 
+    public List<String> getCIncludeDirectories() {
+        return getIncludeDirectoriesFromRecipe("recipe.c.o.pattern");
+    }
+
+    public List<String> getCppIncludeDirectories() {
+        return getIncludeDirectoriesFromRecipe("recipe.cpp.o.pattern");
+    }
+
+    public List<String> getSIncludeDirectories() {
+        return getIncludeDirectoriesFromRecipe("recipe.S.o.pattern");
+    }
+
+    public List<String> getPreProcIncludeDirectories() {
+        return getIncludeDirectoriesFromRecipe("recipe.preproc.o.pattern");
+    }
+
     public Optional<Board> getBoard(String boardId) {
         Set<BoardOption> allAvailableOptions = new HashSet<>();
         Map<String, String> boardData = new HashMap<>();
@@ -214,4 +232,21 @@ public class Platform extends ArduinoDataSource {
         }
     }
 
+    private List<String> getIncludeDirectoriesFromRecipe (String recipeKey) {
+        List <String> includeDirectories = new ArrayList<>();
+        String recipe = data.get(recipeKey);
+        if (recipe != null) {
+            String[] arguments = recipe.split(" ");
+            for(String argument : arguments) {
+                argument = argument.trim();
+                if (argument.charAt(0) == '"') {
+                    argument = argument.substring(1, argument.length() - 1);
+                }
+                if (argument.startsWith("-I")) {
+                    includeDirectories.add(argument.substring(2));
+                }
+            }
+        }
+        return includeDirectories;
+    }
 }

@@ -16,8 +16,8 @@
 package com.microchip.mplab.nbide.embedded.arduino.wizard;
 
 import com.microchip.mplab.nbide.embedded.api.LanguageToolchainMeta;
-import com.microchip.mplab.nbide.embedded.arduino.importer.ProjectImporter;
 import com.microchip.mplab.nbide.embedded.arduino.importer.BoardConfiguration;
+import com.microchip.mplab.nbide.embedded.arduino.importer.ProjectImporter;
 import com.microchip.mplab.nbide.embedded.makeproject.api.configurations.MakeConfiguration;
 import com.microchip.mplab.nbide.embedded.makeproject.api.configurations.MakeConfigurationBook;
 import com.microchip.mplab.nbide.embedded.makeproject.api.configurations.OptionConfiguration;
@@ -86,6 +86,22 @@ public abstract class ProjectConfigurationImporter {
                 includesBuilder.append( coreDirPaths.get(i) );
             }
         }
+
+        for(String includeDirectory : boardConfiguration.getPlatform().getCIncludeDirectories()) {
+            if(includeDirectory.contains("{")) {
+                String keyWithBrackets = includeDirectory.substring(includeDirectory.indexOf('{'), includeDirectory.lastIndexOf('}')+1);
+                String key = keyWithBrackets.substring(1, keyWithBrackets.length() - 1);
+                Optional<String> value = boardConfiguration.getValue(key);
+                if(!value.isPresent())
+                    continue;
+                includeDirectory = includeDirectory.replace(keyWithBrackets, value.get());
+                if (copyFiles) {
+                    includeDirectory = includeDirectory.replace(boardConfiguration.getValue("build.core.path").get(), ProjectImporter.CORE_DIRECTORY_NAME);
+                }
+            }
+            includesBuilder.append(";").append(includeDirectory);
+        }
+
         mainLibraryDirPaths.forEach(path -> {
             Path srcPath = path.resolve("src");
             if ( Files.exists(srcPath) ) {

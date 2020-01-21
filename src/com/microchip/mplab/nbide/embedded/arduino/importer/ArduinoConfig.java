@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -27,6 +28,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.openide.util.Exceptions;
 import org.openide.util.Utilities;
 
 public abstract class ArduinoConfig {
@@ -164,5 +166,13 @@ public abstract class ArduinoConfig {
         return findCurrentVersion().map( v -> v.compareTo( minimumValidVersion ) >= 0 ).get();
     }
     
+    public List<Platform> getAllPlatforms() {
+        try {
+            return new ArrayList<>((new PlatformFactory()).getAllPlatforms(getSettingsPath()));
+        } catch (IOException ex) {
+            Exceptions.printStackTrace(ex);
+        }
+        return new ArrayList<Platform>();
+    }
 }
 

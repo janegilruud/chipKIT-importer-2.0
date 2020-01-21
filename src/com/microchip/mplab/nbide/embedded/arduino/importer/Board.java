@@ -113,22 +113,35 @@ public final class Board extends ArduinoDataSource {
         Optional<String> coreOpt = getValue("build.core");
         if ( coreOpt.isPresent() ) {
             String coreValue = coreOpt.get();
-            Path coresDirPath;
-            // TODO: Improve core parsing
-            if ( coreValue.equals("arduino:arduino") ) {
-                coresDirPath = ArduinoConfig.getInstance().getDefaultArduinoPlatformPath().get().resolve("cores").resolve("arduino");
-            } else {
-                coresDirPath = getPlatform().getRootPath().resolve("cores").resolve(coreValue);
-            }                
-            if ( Files.exists(coresDirPath) ) {
-                return coresDirPath;
-            } else {
-                LOGGER.log(Level.SEVERE, "Failed to find any core directory under: {0}", coresDirPath);
-                return null;
+            String vendor = "arduino"; // Arduino is default vendor
+            if(coreValue.contains(":")) {
+                String[] coreValueList = coreValue.split(":");
+                vendor = coreValueList[0];
+                coreValue = coreValueList[1];
             }
-        } else {
-            LOGGER.log(Level.SEVERE, "Failed to find Arduino core directory for: {0}", boardId);
-        }            
+            
+            Path coresDirPath;
+
+            if( vendor.equals(getPlatform().getVendor()) ){
+                coresDirPath = getPlatform().getRootPath().resolve("cores").resolve(coreValue);
+                if (Files.exists(coresDirPath)) {
+                    return coresDirPath;
+                }
+            }
+            
+            List<Platform> allPlatforms = ArduinoConfig.getInstance().getAllPlatforms();
+            for(Platform platform : allPlatforms) {
+                if ( vendor.equals(platform.getVendor()) && getArchitecture().equals(platform.getArchitecture()) ) {
+                    coresDirPath = platform.getRootPath().resolve("cores").resolve(coreValue);
+                    if (Files.exists(coresDirPath)) {
+                        return coresDirPath;
+                    }
+                }
+            }
+            
+            LOGGER.log(Level.SEVERE, "Failed to find any core directory under any of the platforms");
+        }
+        LOGGER.log(Level.SEVERE, "Failed to find Arduino core directory for: {0}", boardId);
         return null;
     }
 

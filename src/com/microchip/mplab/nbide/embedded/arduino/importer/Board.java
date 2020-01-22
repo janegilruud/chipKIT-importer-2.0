@@ -19,14 +19,14 @@ import java.util.logging.Logger;
 public final class Board extends ArduinoDataSource {
 
 
-    public static final PathMatcher SOURCE_FILE_MATCHER = FileSystems.getDefault().getPathMatcher("glob:*.{c,cpp,S}");    
+    public static final PathMatcher SOURCE_FILE_MATCHER = FileSystems.getDefault().getPathMatcher("glob:*.{c,cpp,S}");
     public static final String VARIANTS_DIRNAME = "variants";
-    
+
     private static final Logger LOGGER = Logger.getLogger(Board.class.getName());
-    
+
     private final String boardId;
     private final Map <BoardOption,Set<String>> options;
-    
+
     public Board(Platform platform, String boardId, Map<String,String> data, Map<BoardOption,Set<String>> options) {
         super(platform, data);
         this.boardId = boardId;
@@ -40,10 +40,10 @@ public final class Board extends ArduinoDataSource {
     }
 
     @Override
-    public String toString() {        
+    public String toString() {
         return "Board {boardId=" + boardId + ", options=" + options.keySet() + '}';
     }
-    
+
     @Override
     public int hashCode() {
         int hash = 5;
@@ -69,27 +69,27 @@ public final class Board extends ArduinoDataSource {
     public Platform getPlatform() {
         return (Platform) parent;
     }
-    
+
     public String getBoardId() {
         return boardId;
     }
-    
+
     public String getArchitecture() {
         return getPlatform().getArchitecture();
     }
-    
+
     public boolean isPIC32() {
         return getPlatform().isPIC32();
     }
-    
+
     public boolean isAVR() {
         return getPlatform().isAVR();
     }
-    
+
     public boolean isSAMD() {
         return getPlatform().isSAMD();
     }
-    
+
     @Override
     public Optional<String> getValue( String dataKey, ArduinoDataSource context, Map <String,String> auxData ) {
         String value = auxData != null ? auxData.get(dataKey) : null;
@@ -101,14 +101,14 @@ public final class Board extends ArduinoDataSource {
             return parent.getValue(dataKey, context, auxData).map( v -> resolveTokens(v, context, auxData) );
         }
     }
-        
+
     public List <Path> getCoreDirPaths() {
         List <Path> ret = new ArrayList<>();
         getValue("build.core.path").ifPresent( val -> ret.add( Paths.get( val ) ) );
         getValue("build.variant.path").ifPresent( val -> ret.add( Paths.get( val ) ) );
         return ret;
     }
-    
+
     public Path getCoreDirectoryPath() {
         Optional<String> coreOpt = getValue("build.core");
         if ( coreOpt.isPresent() ) {
@@ -119,7 +119,7 @@ public final class Board extends ArduinoDataSource {
                 vendor = coreValueList[0];
                 coreValue = coreValueList[1];
             }
-            
+
             Path coresDirPath;
 
             if( vendor.equals(getPlatform().getVendor()) ){
@@ -128,7 +128,7 @@ public final class Board extends ArduinoDataSource {
                     return coresDirPath;
                 }
             }
-            
+
             List<Platform> allPlatforms = ArduinoConfig.getInstance().getAllPlatforms();
             for(Platform platform : allPlatforms) {
                 if ( vendor.equals(platform.getVendor()) && getArchitecture().equals(platform.getArchitecture()) ) {
@@ -138,8 +138,8 @@ public final class Board extends ArduinoDataSource {
                     }
                 }
             }
-            
             LOGGER.log(Level.SEVERE, "Failed to find any core directory under any of the platforms");
+            return null;
         }
         LOGGER.log(Level.SEVERE, "Failed to find Arduino core directory for: {0}", boardId);
         return null;
@@ -148,10 +148,10 @@ public final class Board extends ArduinoDataSource {
     public Collection<BoardOption> getOptions() {
         return options.keySet();
     }
-    
+
     public Map<String,String> getAvailableOptionValuesAndLabels( BoardOption option ) {
-        Map <String,String> ret = new HashMap<>();        
-        options.get(option).forEach( value -> {             
+        Map <String,String> ret = new HashMap<>();
+        options.get(option).forEach( value -> {
             String dataKey = option.getId() + "." + value;
             getValue(dataKey).ifPresent( label -> {
                 ret.put( value, label );
@@ -159,9 +159,9 @@ public final class Board extends ArduinoDataSource {
         });
         return ret;
     }
-    
+
     public boolean hasOptions() {
         return !options.isEmpty();
     }
-    
+
 }

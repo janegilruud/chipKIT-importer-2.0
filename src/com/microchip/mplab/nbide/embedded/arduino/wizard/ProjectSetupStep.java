@@ -1,15 +1,15 @@
 /*
  * Copyright (c) 2017 Microchip Technology Inc. and its subsidiaries (Microchip). All rights reserved.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * You may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
- * http://www.apache.org/licenses/LICENSE-2.0 
- * 
- * Unless required by applicable law or agreed to in writing, 
- * software distributed under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
@@ -74,22 +74,22 @@ import org.openide.util.NbPreferences;
 // TODO: Introduce more Optional return types
 public class ProjectSetupStep implements WizardDescriptor.Panel<WizardDescriptor> {
 
-    
+
     private static final String MAKEFILE_NAME = "Makefile";   // NOI18N
-    
+
     private final Set<ChangeListener> listeners = new HashSet<>();
     private Map<String, String> boardIdLookup = new HashMap<>();
     private final ArduinoConfig arduinoConfig;
     private final PlatformFactory platformFactory;
     private final MPLABDeviceAssistant deviceAssistant;
-    
+
     private List<Platform> allPlatforms;
     private Platform currentPlatform;
     private Board board;
     private WizardDescriptor wizardDescriptor;
     private ProjectSetupPanel view;
-    
-    
+
+
     public ProjectSetupStep( ArduinoConfig arduinoConfig, PlatformFactory platformFactory, MPLABDeviceAssistant deviceAssistant ) {
         this.arduinoConfig = arduinoConfig;
         this.platformFactory = platformFactory;
@@ -100,13 +100,9 @@ public class ProjectSetupStep implements WizardDescriptor.Panel<WizardDescriptor
     public Component getComponent() {
         if (view == null) {
             view = new ProjectSetupPanel(this);
-            try {
-                allPlatforms = new ArrayList<>(platformFactory.getAllPlatforms(arduinoConfig.getSettingsPath()));
-                Collections.sort(allPlatforms, (Platform p1, Platform p2) -> p1.getDisplayName().orElse("").compareTo(p2.getDisplayName().orElse("")));
-                view.platformCombo.setModel( new PlatformComboModel(allPlatforms) );
-            } catch (IOException ex) {
-                Exceptions.printStackTrace(ex);
-            }
+            allPlatforms = arduinoConfig.getAllPlatforms();
+            Collections.sort(allPlatforms, (Platform p1, Platform p2) -> p1.getDisplayName().orElse("").compareTo(p2.getDisplayName().orElse("")));
+            view.platformCombo.setModel( new PlatformComboModel(allPlatforms) );
         }
         return view;
     }
@@ -133,22 +129,22 @@ public class ProjectSetupStep implements WizardDescriptor.Panel<WizardDescriptor
             wizardDescriptor.putProperty(WizardDescriptor.PROP_ERROR_MESSAGE, NbBundle.getMessage(ProjectSetupPanel.class, "MSG_IllegalArduinoDirectory"));
             return false;
         }
-        
+
         if (!isArduinoVersionValid()) {
             wizardDescriptor.putProperty(WizardDescriptor.PROP_ERROR_MESSAGE, NbBundle.getMessage(ProjectSetupPanel.class, "MSG_IllegalArduinoVersion", MINIMUM_ARDUINO_VERSION));
             return false;
         }
-        
+
         if (!isPlatformDirectoryValid()) {
             wizardDescriptor.putProperty(WizardDescriptor.PROP_ERROR_MESSAGE, NbBundle.getMessage(ProjectSetupPanel.class, "MSG_IllegalPlatformDirectory"));
             return false;
         }
-        
+
         if (!isBoardValid()) {
             wizardDescriptor.putProperty(WizardDescriptor.PROP_ERROR_MESSAGE, NbBundle.getMessage(ProjectSetupPanel.class, "MSG_UnknownArduinoBoard"));
             return false;
         }
-        
+
         if (!isToolchainValid()) {
             wizardDescriptor.putProperty(WizardDescriptor.PROP_ERROR_MESSAGE, NbBundle.getMessage(ProjectSetupPanel.class, "MSG_NoMatchingToolchainFound"));
             return false;
@@ -200,7 +196,7 @@ public class ProjectSetupStep implements WizardDescriptor.Panel<WizardDescriptor
             wizardDescriptor.putProperty(WizardDescriptor.PROP_ERROR_MESSAGE, NbBundle.getMessage(ProjectSetupPanel.class, "MSG_ErrorProjectNamePathTooLong"));
             return false;
         }
-        
+
         // Set the error message to null if there is no warning message to display
         if (wizardDescriptor.getProperty(WizardDescriptor.PROP_WARNING_MESSAGE) == null) {
             wizardDescriptor.putProperty(WizardDescriptor.PROP_ERROR_MESSAGE, null);
@@ -221,7 +217,7 @@ public class ProjectSetupStep implements WizardDescriptor.Panel<WizardDescriptor
         synchronized (listeners) {
             listeners.remove(l);// NOI18N
         }
-    }    
+    }
 
     @Override
     public void readSettings(WizardDescriptor settings) {
@@ -237,7 +233,7 @@ public class ProjectSetupStep implements WizardDescriptor.Panel<WizardDescriptor
             lastSourceProjectLocation = new File(loc);
         }
         view.sourceProjectLocationField.setText(lastSourceProjectLocation.getAbsolutePath());
-        
+
         // Target Project Location
         File lastTargetProjectLocation = (File) wizardDescriptor.getProperty(PROJECT_LOCATION.key());
         if (lastTargetProjectLocation == null) {
@@ -250,8 +246,8 @@ public class ProjectSetupStep implements WizardDescriptor.Panel<WizardDescriptor
             }
             lastTargetProjectLocation = new File(loc);
         }
-        view.targetProjectLocationField.setText(lastTargetProjectLocation.getAbsolutePath());        
-        
+        view.targetProjectLocationField.setText(lastTargetProjectLocation.getAbsolutePath());
+
         // Arduino Install Location
         File arduinoDir = (File) wizardDescriptor.getProperty(ARDUINO_DIR.key());
         if (arduinoDir == null) {
@@ -266,7 +262,7 @@ public class ProjectSetupStep implements WizardDescriptor.Panel<WizardDescriptor
                 view.arduinoLocationField.setText(arduinoDir.getAbsolutePath());
             }
         }
-        
+
         // Platform
         currentPlatform = (Platform) wizardDescriptor.getProperty(ARDUINO_PLATFORM.key());
         if (currentPlatform == null) {
@@ -275,9 +271,9 @@ public class ProjectSetupStep implements WizardDescriptor.Panel<WizardDescriptor
                 String[] split = vendorArch.split(":");
                 String vendor = split[0];
                 String architecture = split[1];
-                allPlatforms.stream().filter( 
+                allPlatforms.stream().filter(
                     p -> vendor.equalsIgnoreCase(p.getVendor()) && architecture.equalsIgnoreCase(p.getArchitecture())
-                ).findFirst().ifPresent( 
+                ).findFirst().ifPresent(
                     p -> currentPlatform = p
                 );
             } else {
@@ -287,14 +283,14 @@ public class ProjectSetupStep implements WizardDescriptor.Panel<WizardDescriptor
                 } catch (IOException ex) {
                     Exceptions.printStackTrace(ex);
                 }
-                
+
             }
         }
-        if (currentPlatform != null) {            
+        if (currentPlatform != null) {
             view.platformCombo.setSelectedItem( currentPlatform );
             onPlatformChanged();
         }
-        
+
         // Platform Location
         File platformCoreDir = (File) wizardDescriptor.getProperty(ARDUINO_PLATFORM_DIR.key());
         if (platformCoreDir == null) {
@@ -305,10 +301,10 @@ public class ProjectSetupStep implements WizardDescriptor.Panel<WizardDescriptor
         }
         if (platformCoreDir != null) {
             view.platformLocationField.setText( platformCoreDir.getAbsolutePath() );
-        } else {            
+        } else {
             view.platformLocationField.setText( currentPlatform.getRootPath().toString() );
         }
-        
+
         // Target Device:
         String boardName = (String) wizardDescriptor.getProperty(BOARD_NAME.key());
         loadBoardsToCombo();
@@ -327,7 +323,7 @@ public class ProjectSetupStep implements WizardDescriptor.Panel<WizardDescriptor
         // Copy all dependencies:
         Object copyDependencies = wizardDescriptor.getProperty(COPY_CORE_FILES.key());
         view.copyDependenciesCheckBox.setSelected( copyDependencies != null ? (boolean) copyDependencies : true);
-        
+
         // Target Project Directory:
         setTargetProjectDirectoryField();
     }
@@ -338,11 +334,11 @@ public class ProjectSetupStep implements WizardDescriptor.Panel<WizardDescriptor
         String sourceProjectDir = readLocationStringFromField( view.sourceProjectLocationField );
         String arduinoDir = readLocationStringFromField( view.arduinoLocationField );
         String platformDir = readLocationStringFromField(view.platformLocationField );
-        String boardName = readSelectedValueFromComboBox(view.boardCombo);        
+        String boardName = readSelectedValueFromComboBox(view.boardCombo);
         String targetLocation = readLocationStringFromField( view.targetProjectLocationField );
         String targetDir = readLocationStringFromField( view.projectDirectoryField );
         boolean copyCoreFiles = view.copyDependenciesCheckBox.isSelected();
-        
+
         if ( !board.hasOptions() ) {
             deviceAssistant.storeSettings(settings);
             settings.putProperty(BOARD_CONFIGURATION.key(), new BoardConfiguration(board));
@@ -355,10 +351,10 @@ public class ProjectSetupStep implements WizardDescriptor.Panel<WizardDescriptor
         settings.putProperty(BOARD_NAME.key(), boardName);
         settings.putProperty(BOARD.key(), board);
         settings.putProperty(COPY_CORE_FILES.key(), copyCoreFiles);
-                
+
         settings.putProperty(DEVICE_HEADER_PRESENT.key(), false);
         settings.putProperty(PLUGIN_BOARD_PRESENT.key(), false);
-    
+
         settings.putProperty(PROJECT_DIR.key(), new File(targetDir));
         settings.putProperty(PROJECT_NAME.key(), projectName);
         settings.putProperty(MAKE_FILENAME.key(), MAKEFILE_NAME);
@@ -377,13 +373,13 @@ public class ProjectSetupStep implements WizardDescriptor.Panel<WizardDescriptor
 
         NbPreferences.forModule(SelectProjectInfoPanel.class).put(LAST_PROJECT_LOCATION.key(), projectsDir.getAbsolutePath());
         NbPreferences.forModule(SelectProjectInfoPanel.class).put(LAST_SOURCE_PROJECT_LOCATION.key(), new File(sourceProjectDir).getParent());
-        NbPreferences.forModule(SelectProjectInfoPanel.class).put(LAST_ARDUINO_LOCATION.key(), arduinoDir);        
+        NbPreferences.forModule(SelectProjectInfoPanel.class).put(LAST_ARDUINO_LOCATION.key(), arduinoDir);
         NbPreferences.forModule(SelectProjectInfoPanel.class).put(LAST_ARDUINO_PLATFORM.key(), currentPlatform.getVendor() + ":" + currentPlatform.getArchitecture() );
         NbPreferences.forModule(SelectProjectInfoPanel.class).put(LAST_ARDUINO_PLATFORM_LOCATION.key(), platformDir);
         NbPreferences.forModule(SelectProjectInfoPanel.class).put(BOARD_NAME.key(), boardName);
     }
 
-    
+
     //**************************************************
     //*************** EVENT LISTENERS ******************
     //**************************************************
@@ -426,7 +422,7 @@ public class ProjectSetupStep implements WizardDescriptor.Panel<WizardDescriptor
         showDirectoryChooser(view.platformLocationField, "DLG_ArduinoCoreDirectory" );
         onPlatformLocationChanged();
     }
-    
+
     void projectNameFieldKeyReleased(KeyEvent evt) {
         String projectName = view.projectNameField.getText().trim();
         if (projectName.endsWith("\\")
@@ -477,12 +473,12 @@ public class ProjectSetupStep implements WizardDescriptor.Panel<WizardDescriptor
     void sourceProjectLocationFieldFocusLost(FocusEvent evt) {
         fireChangeEvent();
     }
-    
+
     void boardComboItemStateChanged(ItemEvent evt) {
         updateBoard();
         fireChangeEvent();
     }
-    
+
     void platformComboItemStateChanged(ItemEvent evt) {
         if ( evt.getStateChange() ==  ItemEvent.SELECTED && evt.getItem() instanceof Platform ) {
             currentPlatform = (Platform) evt.getItem();
@@ -490,14 +486,14 @@ public class ProjectSetupStep implements WizardDescriptor.Panel<WizardDescriptor
         }
     }
 
-    
+
     //**************************************************
     //*************** PRIVATE METHODS ******************
     //**************************************************
     private String readLocationStringFromField( JTextField field ) {
         return field.getText().replaceAll("[*?\\\"<>|]", "").trim();
     }
-    
+
     private String readSelectedValueFromComboBox( JComboBox<String> comboBox ) {
         String value = (String) comboBox.getSelectedItem();
         if ( value != null ) {
@@ -506,14 +502,14 @@ public class ProjectSetupStep implements WizardDescriptor.Panel<WizardDescriptor
             return null;
         }
     }
-    
+
     private File showDirectoryChooser(JTextField pathField, String dialogTitleKey) {
         return showDirectoryChooser(pathField, dialogTitleKey, null);
     }
-    
+
     private File showDirectoryChooser(JTextField pathField, String dialogTitleKey, FileFilter fileFilter) {
         String startDir = readLocationStringFromField(pathField);
-        
+
         JFileChooser chooser = new JFileChooser();
         chooser.setCurrentDirectory(null);
         chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
@@ -533,7 +529,7 @@ public class ProjectSetupStep implements WizardDescriptor.Panel<WizardDescriptor
                 chooser.setCurrentDirectory(f);
             }
         }
-        
+
         chooser.setDialogTitle( NbBundle.getMessage(ProjectSetupPanel.class, dialogTitleKey) );
         if (JFileChooser.APPROVE_OPTION == chooser.showOpenDialog(view)) { //NOI18N
             File selectedFile = chooser.getSelectedFile();
@@ -595,7 +591,7 @@ public class ProjectSetupStep implements WizardDescriptor.Panel<WizardDescriptor
         Path p = Paths.get( readLocationStringFromField( view.arduinoLocationField ) );
         return arduinoConfig.isValidArduinoInstallPath(p);
     }
-    
+
     private boolean isArduinoVersionValid() {
         return arduinoConfig.isCurrentVersionValid( new Version(MINIMUM_ARDUINO_VERSION) );
     }
@@ -604,15 +600,15 @@ public class ProjectSetupStep implements WizardDescriptor.Panel<WizardDescriptor
         Path p = Paths.get( readLocationStringFromField(view.platformLocationField ) );
         return platformFactory.isValidPlatformRootPath(p);
     }
-    
+
     private boolean isBoardValid() {
         return board != null;
     }
-    
+
     private boolean isToolchainValid() {
         return board.hasOptions() ? true : deviceAssistant.isToolchainValid();
     }
-    
+
     private boolean isValidProjectName() {
         String projectName = view.projectNameField.getText().trim();
         // unix allows a lot of strange names, but let's prohibit this for project
@@ -654,17 +650,17 @@ public class ProjectSetupStep implements WizardDescriptor.Panel<WizardDescriptor
 
     private void onPlatformLocationChanged() {
         resolvePlatformFromPath();
-        loadBoardsToCombo();        
+        loadBoardsToCombo();
         fireChangeEvent();
     }
-    
-    private void onPlatformChanged() {        
+
+    private void onPlatformChanged() {
         loadBoardsToCombo();
         view.platformLocationField.setText( currentPlatform.getRootPath().toString() );
         updateBoard();
         fireChangeEvent();
     }
-    
+
     private void checkForExistingProject() {
         //if project already exists, enable the check box
         if ("".equalsIgnoreCase(view.projectNameField.getText().trim())) {
@@ -703,7 +699,7 @@ public class ProjectSetupStep implements WizardDescriptor.Panel<WizardDescriptor
             view.boardCombo.setSelectedItem(currentlySelectedBoardName);
         }
     }
-    
+
     private void updateBoard() {
         String boardName = readSelectedValueFromComboBox(view.boardCombo);
         String boardId = boardIdLookup.get(boardName);
@@ -717,7 +713,7 @@ public class ProjectSetupStep implements WizardDescriptor.Panel<WizardDescriptor
             deviceAssistant.updateDeviceAndToolchain(null);
         }
     }
-   
+
     private void fireChangeEvent() {
         Iterator<ChangeListener> it;
         synchronized (listeners) {
@@ -736,7 +732,7 @@ public class ProjectSetupStep implements WizardDescriptor.Panel<WizardDescriptor
             // TODO: What should we do with this exception?
             return null;
         }
-    }        
+    }
 
     private void resolvePlatformFromPath() {
         Path p = Paths.get( readLocationStringFromField(view.platformLocationField) );
@@ -753,7 +749,7 @@ public class ProjectSetupStep implements WizardDescriptor.Panel<WizardDescriptor
     private static class PlatformComboModel extends DefaultComboBoxModel<Platform> {
         PlatformComboModel( List<Platform> platforms ) {
             super( platforms.toArray( new Platform[platforms.size()] ) );
-        }        
+        }
     }
-    
+
 }

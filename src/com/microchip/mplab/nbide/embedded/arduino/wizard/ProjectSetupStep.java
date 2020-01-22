@@ -45,12 +45,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
@@ -96,12 +98,16 @@ public class ProjectSetupStep implements WizardDescriptor.Panel<WizardDescriptor
         this.deviceAssistant = deviceAssistant;
     }
 
+    private static final Comparator<Platform> PLATFORM_COMPARATOR = (p1, p2) -> p1.getDisplayName().orElse("").compareTo(p2.getDisplayName().orElse(""));
+    
     @Override
     public Component getComponent() {
         if (view == null) {
             view = new ProjectSetupPanel(this);
-            allPlatforms = arduinoConfig.getAllPlatforms();
-            Collections.sort(allPlatforms, (Platform p1, Platform p2) -> p1.getDisplayName().orElse("").compareTo(p2.getDisplayName().orElse("")));
+            
+            allPlatforms = arduinoConfig.getAllPlatforms().stream()
+                    .sorted(PLATFORM_COMPARATOR)
+                    .collect(Collectors.toList());
             view.platformCombo.setModel( new PlatformComboModel(allPlatforms) );
         }
         return view;
